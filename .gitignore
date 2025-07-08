@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+*.pkl
+model.zip
+traffic volume.csv
+.env

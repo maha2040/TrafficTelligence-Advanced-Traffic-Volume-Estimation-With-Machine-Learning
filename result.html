@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Traffic Prediction Results</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+  <section class="max-w-6xl mx-auto p-6 mt-6 bg-gray-800 rounded-lg shadow-lg">
+    <a href="/" class="text-sm text-yellow-400 hover:underline">&larr; Back to Form</a>
+
+    <h2 class="text-3xl font-bold text-green-400 mt-4">Analysis Complete</h2>
+    <p class="text-gray-400 mb-6">AI-powered traffic volume prediction with real-time insights</p>
+
+    <div class="bg-gray-700 rounded-xl p-6 mb-6">
+      <h3 class="text-xl mb-2">Predicted Traffic Volume</h3>
+      <div id="predictedVolume" class="text-5xl font-bold text-yellow-300">{{ predicted_volume }}</div>
+      <div class="flex items-center gap-4 mt-2">
+        <span class="bg-red-600 px-3 py-1 rounded-full text-sm">🚦 High Congestion</span>
+        <span class="bg-blue-600 px-3 py-1 rounded-full text-sm">{{ confidence }}%</span>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-4 gap-6 text-center mb-6">
+      <div class="bg-gray-700 p-4 rounded-lg">
+        <h4 class="text-lg font-semibold">Peak Hour</h4>
+        <p class="text-yellow-400">{{ peak_hour }}</p>
+      </div>
+      <div class="bg-gray-700 p-4 rounded-lg">
+        <h4 class="text-lg font-semibold">Rush Hours</h4>
+        <p class="text-yellow-400">{{ rush_hour_count }}</p>
+      </div>
+      <div class="bg-gray-700 p-4 rounded-lg">
+        <h4 class="text-lg font-semibold">Current Hour</h4>
+        <p class="text-yellow-400">{{ current_volume }}</p>
+      </div>
+      <div class="bg-gray-700 p-4 rounded-lg">
+        <h4 class="text-lg font-semibold">Daily Average</h4>
+        <p class="text-yellow-400">{{ daily_average }}</p>
+      </div>
+    </div>
+
+    <div class="border-b border-gray-600 mb-4">
+      <nav class="flex space-x-8">
+        <button data-tab="pattern" class="tab-btn text-yellow-400 font-semibold border-b-2 border-yellow-400 pb-2">📊 24-Hour Pattern</button>
+        <button data-tab="analysis" class="tab-btn text-gray-400 hover:text-white">🧠 Traffic Analysis</button>
+        <button data-tab="insights" class="tab-btn text-gray-400 hover:text-white">📚 All Insights</button>
+      </nav>
+    </div>
+
+    <div id="tab-content-pattern" class="tab-content bg-gray-700 p-6 rounded-lg mb-6">
+      <h4 class="text-xl mb-4">Interactive 24-Hour Traffic Pattern</h4>
+      <canvas id="trafficChart" height="120"></canvas>
+      <div class="flex gap-4 mt-4 text-sm text-gray-300">
+        <span>🟡 Traffic Volume</span>
+        <span>🔵 Current Time</span>
+        <span>🟢 Daily Average</span>
+      </div>
+    </div>
+
+    <div id="tab-content-analysis" class="tab-content hidden bg-gray-700 p-6 rounded-lg mb-6">
+      <h4 class="text-xl mb-4">Detailed Traffic Analysis</h4>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h5 class="text-md font-semibold text-red-400 mb-2">Peak Hours Analysis</h5>
+          <div class="space-y-2">
+            <div class="bg-red-800 p-2 rounded">{{ peak_hour }} — {{ peak_volume }} vehicles</div>
+            <div class="bg-red-800 p-2 rounded">{{ min_hour }} — {{ min_volume }} vehicles</div>
+          </div>
+        </div>
+        <div>
+          <h5 class="text-md font-semibold text-yellow-400 mb-2">Congestion Breakdown</h5>
+          <ul class="text-sm text-gray-300 space-y-1">
+            <li><span class="text-red-400">High Congestion:</span> 4 hours (17%)</li>
+            <li><span class="text-yellow-300">Medium Congestion:</span> 10 hours (42%)</li>
+            <li><span class="text-green-400">Low Congestion:</span> 10 hours (42%)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-content-insights" class="tab-content hidden bg-gray-700 p-6 rounded-lg mb-6">
+      <h4 class="text-xl mb-4">AI-Generated Insights</h4>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h5 class="text-md font-semibold text-blue-400 mb-2">Key Findings</h5>
+          <ul class="list-disc pl-5 text-gray-300 text-sm space-y-1">
+            <li>Peak hour occurs at {{ peak_hour }}.</li>
+            <li>Highest volume: {{ peak_volume }} vehicles.</li>
+            <li>Lowest traffic at {{ min_hour }} with {{ min_volume }} vehicles.</li>
+          </ul>
+        </div>
+        <div>
+          <h5 class="text-md font-semibold text-green-400 mb-2">Recommendations</h5>
+          <ul class="list-disc pl-5 text-gray-300 text-sm space-y-1">
+            <li>Avoid peak hours for commuting if possible.</li>
+            <li>Implement smart signals during {{ rush_periods }}.</li>
+            <li>Use public transport during high congestion times.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-4 justify-center mb-8">
+      <a href="/" class="bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg">🔄 New Prediction</a>
+      <button onclick="exportResults()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg">📤 Export Results</button>
+      <button onclick="saveAnalysis()" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg">💾 Save Analysis</button>
+    </div>
+
+    <div class="bg-gray-700 p-6 rounded-lg text-sm text-gray-300">
+      <h5 class="font-semibold text-white mb-2">📌 Analysis Summary</h5>
+      <ul class="list-disc pl-6 space-y-1">
+        <li>Prediction run at: {{ timestamp }}</li>
+        <li>Predicted traffic volume: {{ predicted_volume }}</li>
+        <li>Peak hour: {{ peak_hour }} with {{ peak_volume }} vehicles</li>
+        <li>Daily average: {{ daily_average }} vehicles</li>
+      </ul>
+    </div>
+  </section>
+
+  <script>
+    const labels = {{ labels | tojson }};
+    const data = {{ data | tojson }};
+    const avgData = {{ avg_data | tojson }};
+    const currentIndex = {{ current_index }};
+
+    const ctx = document.getElementById('trafficChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Traffic Volume',
+            data: data,
+            borderColor: 'yellow',
+            fill: false,
+            tension: 0.3
+          },
+          {
+            label: 'Daily Average',
+            data: avgData,
+            borderColor: 'green',
+            borderDash: [5, 5],
+            fill: false
+          },
+          {
+            label: 'Current Time',
+            data: data.map((v, i) => i === currentIndex ? v : null),
+            borderColor: 'blue',
+            borderWidth: 3,
+            fill: false,
+            pointRadius: 5,
+            pointBackgroundColor: 'blue'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { labels: { color: 'white' } }
+        },
+        scales: {
+          x: { ticks: { color: 'white' } },
+          y: { ticks: { color: 'white' } }
+        }
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab-btn');
+      const contents = document.querySelectorAll('.tab-content');
+      tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabs.forEach(b => b.classList.remove('text-yellow-400', 'border-yellow-400'));
+          tabs.forEach(b => b.classList.add('text-gray-400'));
+          contents.forEach(c => c.classList.add('hidden'));
+          document.getElementById(`tab-content-${btn.dataset.tab}`).classList.remove('hidden');
+          btn.classList.add('text-yellow-400', 'border-b-2', 'border-yellow-400');
+          btn.classList.remove('text-gray-400');
+        });
+      });
+    });
+
+    function exportResults() {
+      const results = {
+        predicted_volume: "{{ predicted_volume }}",
+        confidence: "{{ confidence }}%",
+        peak_hour: "{{ peak_hour }}",
+        peak_volume: "{{ peak_volume }}",
+        min_hour: "{{ min_hour }}",
+        min_volume: "{{ min_volume }}",
+        current_volume: "{{ current_volume }}",
+        daily_average: "{{ daily_average }}",
+        timestamp: "{{ timestamp }}"
+      };
+      const blob = new Blob([JSON.stringify(results, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "traffic_results.json";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function saveAnalysis() {
+      const summary = {
+        predicted_volume: "{{ predicted_volume }}",
+        peak_hour: "{{ peak_hour }}",
+        peak_volume: "{{ peak_volume }}",
+        min_hour: "{{ min_hour }}",
+        min_volume: "{{ min_volume }}",
+        timestamp: "{{ timestamp }}"
+      };
+      localStorage.setItem("traffic_analysis", JSON.stringify(summary));
+      alert("Analysis saved to localStorage ✅");
+    }
+  </script>
+</body>
+</html>
